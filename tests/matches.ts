@@ -1,0 +1,9 @@
+import {World} from '../src/game/World.ts';
+import {performance} from 'node:perf_hooks';
+const runs=[];
+for(const seed of [81731,20261018,42]){const w=new World(seed);w.aiBoth=true;const mass=w.totalMatter(),start=performance.now();for(let i=0;i<12000&&w.winner===null;i++)w.step(.1);runs.push({seed,mode:'AI vs AI',timeSeconds:+w.time.toFixed(1),winner:w.winner,reason:w.reason,population:[w.count(0),w.count(1),w.count(2)],divisions:w.born,feedingEvents:w.eaten,matterDrift:w.totalMatter()-mass,wallMs:+(performance.now()-start).toFixed(0),sites:w.sites.map(s=>s.owner)});}
+const idle=new World();const begin=performance.now();for(let i=0;i<12000&&idle.winner===null;i++)idle.step(.1);runs.push({seed:81731,mode:'Idle human vs AI',timeSeconds:+idle.time.toFixed(1),winner:idle.winner,reason:idle.reason,population:[idle.count(0),idle.count(1),idle.count(2)],divisions:idle.born,feedingEvents:idle.eaten,matterDrift:0,wallMs:+(performance.now()-begin).toFixed(0),sites:idle.sites.map(s=>s.owner)});
+console.log(JSON.stringify(runs,null,2));
+const bench=[];
+for(const cap of [150,300,500]){const w=new World(200,cap);w.aiEnabled=false;while(w.units.length<cap){const id=w.units.length;w.spawn(['alga','recycler','builder','ciliate','amoeba'][id%5] as any,id%2 as 0|1,{x:50+id*137%2500,y:50+id*89%1600});}w.refresh();for(const u of w.units)u.reproduce=false;const samples=[];for(let i=0;i<600;i++){const start=performance.now();w.step(.1);samples.push(performance.now()-start);}samples.sort((a,b)=>a-b);bench.push({requestedCells:cap,endCells:w.units.length,meanStepMs:samples.reduce((a,b)=>a+b)/samples.length,p95StepMs:samples[Math.floor(samples.length*.95)],note:'Server Node simulation only; excludes DOM, Canvas rendering and Chromebook hardware.'});}
+console.log('BENCHMARKS\n'+JSON.stringify(bench,null,2));

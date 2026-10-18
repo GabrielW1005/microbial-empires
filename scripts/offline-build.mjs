@@ -1,0 +1,11 @@
+import {readFile,writeFile} from 'node:fs/promises';
+let html=await readFile('dist/index.html','utf8');
+const js=html.match(/<script type="module" crossorigin src="([^\"]+)"><\/script>/);
+const css=html.match(/<link rel="stylesheet" crossorigin href="([^\"]+)">/);
+if(!js||!css)throw new Error('Expected one Vite entry script and stylesheet.');
+let code=await readFile('dist/'+js[1].replace(/^\.\//,''),'utf8');
+code=code.replace(/\/\/# sourceMappingURL=.*$/gm,'').replace(/<\/script/gi,'<\\/script');
+const style=await readFile('dist/'+css[1].replace(/^\.\//,''),'utf8');
+html=html.replace(js[0],()=>'<script type="module">'+code+'</script>').replace(css[0],()=>'<style>'+style+'</style>');
+html=html.replace('href="./favicon.svg"','href="data:image/svg+xml,'+encodeURIComponent(await readFile('public/favicon.svg','utf8'))+'"');
+await writeFile('dist/PLAY_OFFLINE.html',html);console.log('Standalone offline build: dist/PLAY_OFFLINE.html');
