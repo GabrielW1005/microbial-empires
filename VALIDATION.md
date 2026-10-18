@@ -10,4 +10,4 @@ Checked on 2026-10-18.
 
 The timings above are server measurements, not browser or Chromebook FPS. The default 30 FPS cap is a rendering target, not a measured hardware guarantee. Human match balance, school Chromebook performance, and extensive accessibility testing remain open.
 
-GitHub Actions runs the same tests and production build before publishing. Public browser checks are performed after deployment for the opening screen, selection-only commands, gathering, and layout.
+GitHub Actions runs the same tests and production build before publishing. The deployed public page was opened in Chrome and verified to show v0.2 with three workers and a home colony. Live checks confirmed worker selection, food and mineral orders, reserved population after queuing a worker, and the command panel disappearing on empty-ground selection. The worker command row was tightened after visual review. Only browser-extension errors appeared in the inspected error log; no game-script errors were observed. The remote viewport was 1363×936; smaller-device and physical Chromebook checks remain unverified.
