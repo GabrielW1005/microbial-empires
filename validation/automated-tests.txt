@@ -1,28 +1,26 @@
 
-> microbial-empires@0.1.0 test
+> microbial-empires@0.2.0 test
 > node --experimental-strip-types --test tests/*.test.ts
 
-✔ photosynthesis consumes carbon/minerals; total modeled matter is conserved (3.622305ms)
-✔ bacterial decomposition and assimilation conserve matter (2.207457ms)
-✔ division splits biomass and energy, rather than duplicating either (2.499147ms)
-✔ feeding is constrained by species, size, allegiance and reserves (0.562553ms)
-✔ ingestion accounts for all prey matter including overflow (0.557102ms)
-✔ diffusion conserves modeled matter and does not create negative pools (72.927844ms)
-✔ victory requires continuous uncontested control of three sites (1.095981ms)
-✔ navigation routes around stones and projects blocked/outside destinations (2.382505ms)
-✔ movement executes queued destinations and stays inside arena (15.766495ms)
-✔ biofilm costs structural biomass and returns matter on decay (0.721406ms)
-✔ save/load round-trips and continues deterministically (309.326246ms)
-✔ corrupt, cross-game and future-version saves are rejected (6.700552ms)
-✔ five-minute ecosystem remains bounded, viable and matter-consistent (1982.54955ms)
-✔ uncommanded economic cells forage locally instead of colonizing the map (14.603172ms)
-✔ a dominant garrison can hold a site despite a weak intrusion (0.494908ms)
-✔ routes escape clear positions near obstacle boundaries (60.366059ms)
-ℹ tests 16
+✔ opening has one home and three workers per side, with no automatic growth (10.813333ms)
+✔ workers repeatedly gather and return food and minerals to the colony (13.009037ms)
+✔ a worker deposits the last partial load and stops at an exhausted patch (6.489015ms)
+✔ switching resource jobs does not turn carried food into minerals (1.186922ms)
+✔ training charges once, takes time, and cancellation refunds the last order (2.53148ms)
+✔ production reserves population slots and cannot exceed the cap (9.713154ms)
+✔ construction consumes resources, needs workers, then increases capacity (4.228138ms)
+✔ maturation requires a completed grazing pool and gates amoebae (9.63511ms)
+✔ queued move orders execute in sequence and navigate around rock (4.361988ms)
+✔ diet rules prevent equal-size grazing and allow amoebae to engulf ciliates (2.687046ms)
+✔ destroying a home colony ends the match (0.487171ms)
+✔ rival expands using workers and launches no raids before five minutes (77.353862ms)
+✔ save round-trip resumes production, gathering, and queued movement (6.430092ms)
+✔ invalid saves cannot inject oversized populations, bad numbers, or old schemas (1.540914ms)
+ℹ tests 14
 ℹ suites 0
-ℹ pass 16
+ℹ pass 14
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 2728.090576
+ℹ duration_ms 368.869541

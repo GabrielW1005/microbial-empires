@@ -1,122 +1,18 @@
 
-> microbial-empires@0.1.0 simulate
+> microbial-empires@0.2.0 simulate
 > node --experimental-strip-types tests/matches.ts
 
-[
-  {
-    "seed": 81731,
-    "mode": "AI vs AI",
-    "timeSeconds": 1200,
-    "winner": null,
-    "reason": "",
-    "population": [
-      27,
-      30,
-      30
-    ],
-    "divisions": 215,
-    "feedingEvents": 241,
-    "matterDrift": -5.951733328402042e-9,
-    "wallMs": 8335,
-    "sites": [
-      0,
-      1,
-      0,
-      0,
-      1
-    ]
-  },
-  {
-    "seed": 20261018,
-    "mode": "AI vs AI",
-    "timeSeconds": 1006.7,
-    "winner": 1,
-    "reason": "Three habitats held continuously for 90 seconds.",
-    "population": [
-      36,
-      50,
-      26
-    ],
-    "divisions": 187,
-    "feedingEvents": 188,
-    "matterDrift": -7.799826562404633e-9,
-    "wallMs": 8339,
-    "sites": [
-      0,
-      1,
-      0,
-      1,
-      1
-    ]
-  },
-  {
-    "seed": 42,
-    "mode": "AI vs AI",
-    "timeSeconds": 1200,
-    "winner": null,
-    "reason": "",
-    "population": [
-      42,
-      33,
-      26
-    ],
-    "divisions": 188,
-    "feedingEvents": 200,
-    "matterDrift": -8.672941476106644e-9,
-    "wallMs": 9765,
-    "sites": [
-      0,
-      0,
-      0,
-      1,
-      1
-    ]
-  },
-  {
-    "seed": 81731,
-    "mode": "Idle human vs AI",
-    "timeSeconds": 451.9,
-    "winner": 1,
-    "reason": "Three habitats held continuously for 90 seconds.",
-    "population": [
-      45,
-      62,
-      32
-    ],
-    "divisions": 90,
-    "feedingEvents": 64,
-    "matterDrift": 0,
-    "wallMs": 3439,
-    "sites": [
-      -1,
-      1,
-      1,
-      -1,
-      1
-    ]
-  }
-]
-BENCHMARKS
-[
-  {
-    "requestedCells": 150,
-    "endCells": 127,
-    "meanStepMs": 0.5020287416666845,
-    "p95StepMs": 1.3579080000017711,
-    "note": "Server Node simulation only; excludes DOM, Canvas rendering and Chromebook hardware."
-  },
-  {
-    "requestedCells": 300,
-    "endCells": 237,
-    "meanStepMs": 1.1486052100000597,
-    "p95StepMs": 2.594744999998511,
-    "note": "Server Node simulation only; excludes DOM, Canvas rendering and Chromebook hardware."
-  },
-  {
-    "requestedCells": 500,
-    "endCells": 379,
-    "meanStepMs": 2.2541939916666163,
-    "p95StepMs": 4.514655999999377,
-    "note": "Server Node simulation only; excludes DOM, Canvas rendering and Chromebook hardware."
-  }
-]
+{
+  "scenario": "Idle player versus resource-constrained AI",
+  "matchSeconds": 345.2,
+  "winner": 1,
+  "population": [
+    1,
+    13
+  ],
+  "wallMs": 91,
+  "finite": true
+}
+{"cells":6,"meanStepMs":0.015,"p95StepMs":0.024,"note":"Node CPU simulation only, not browser or Chromebook FPS."}
+{"cells":48,"meanStepMs":0.157,"p95StepMs":0.416,"note":"Node CPU simulation only, not browser or Chromebook FPS."}
+{"cells":96,"meanStepMs":0.235,"p95StepMs":0.398,"note":"Node CPU simulation only, not browser or Chromebook FPS."}

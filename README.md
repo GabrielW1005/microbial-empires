@@ -1,147 +1,95 @@
-# Microbial Empires · v0.1.0
+# Microbial Empires · v0.2.0
 
-An independent, single-player ecological RTS. Command a mixed Sunlit community against an autonomous Sediment community across five freshwater habitats. It is a playable first vertical slice, not the complete long-term design.
+A small, deliberate single-player RTS inspired by pond microbes and classic 1990s strategy games. Begin with **one home colony and three workers**. Gather resources, construct habitats, queue units, and expand at your own pace.
 
-This project is separate from Microcosm, Cell Command, Newton Studio and every other existing game. No existing repository was changed. Storage keys begin with `microbial-empires.v1.`; no other app's storage is read or modified.
+**Play:** https://gabrielw1005.github.io/microbial-empires/
 
-## Play
+This is the independent `GabrielW1005/microbial-empires` project. Do not deploy it to any other game or the account's root Pages repository.
 
-- GitHub Pages: https://GabrielW1005.github.io/microbial-empires/
-- **No installation:** extract the ZIP and open `PLAY_OFFLINE.html` in Chrome. This contains the compiled game, styling and icon in one file. File opening and JSON download permissions can depend on school policy. Export saves if local browser storage is restricted.
-- **Static hosting:** upload the contents of `dist/` together. Its `index.html` uses relative asset paths. It can be served at a repository subpath.
-- The hosted version does not need third-party runtime websites or online APIs. The standalone build works without a network connection. The hosted version is not a PWA and is not guaranteed to reopen offline after a reload.
+## Opening and objective
 
-Start with a mixed group near the left side of the pond. Send it to Lily Reach. Keep some producers and recyclers alive, then expand to Fallen Leaf and Sunwell. Population growth happens through feeding and division, not a purchase button.
+1. Select workers and right-click a brown food patch or gray mineral deposit. Workers collect a load, return it to a colony or grazing pool, and repeat.
+2. Select the home colony to queue workers. Build an algal bed for +8 population space and a small food income.
+3. Construct a grazing pool, then grow ciliates. Mature the home colony to unlock amoebae.
+4. Destroy the rival home colony to win. Losing yours ends the match. The AI gathers, builds, and produces under the same resource costs; it launches no raids during the first five minutes.
 
-## Objective
-
-Capture a habitat by maintaining dominant presence for 32 seconds. At least 1 influence point and 1.5 times the opposing influence is needed to progress capture. Amoebae count 2.5, ciliates 1.6, algae 0.6 and bacteria 0.2. This influence is an explicit strategy abstraction.
-
-Win by holding three habitats continuously for 90 seconds or eliminating all opposing living cells. A balanced contest or stronger invading force interrupts the hold timer. A weak intrusion does not indefinitely cancel control by a dominant garrison. Ownership persists until another community captures a site. Economic resources are local field pools; ownership does not create bonus resources.
-
-A 10–20 minute match is the design target, not a guaranteed duration. Check VALIDATION.md for measured automated match outcomes. Human balance and classroom playtesting remain necessary.
+The top bar shows only resources, population, clock, pause, and menu. Detailed commands appear only when a unit or habitat is selected. The opening hint can be dismissed and the minimap is optional.
 
 ## Controls
 
 | Action | Input |
 | --- | --- |
-| Select | Left click; drag a marquee for a group |
+| Select | Left click; drag a box for a group |
 | Add/remove selection | Shift + click |
-| Select a species | Double-click a cell, or click its selected-species chip |
-| Move | Right click terrain, or Move then left click; M activates Move |
-| Attack/forage move | A then click; uses only biologically compatible prey |
-| Contextual predation | Right click an enemy/wild cell; only eligible selected predators receive the order |
-| Settle | G or Settle, then click a patch; travel and hold for local feeding |
-| Queue | Shift + right click or Shift + command click; up to 16 orders |
-| Hold | H |
-| Toggle selected division | R |
-| Inspect a cell | I or Inspect; pauses the match |
-| Assign / recall group | Ctrl + 1–9 / 1–9; recall also focuses the camera |
-| Pan | Arrows, Alt + drag, middle drag, or click minimap |
-| Optional WASD pan | Enable in Settings; attack-move becomes F to avoid the A conflict |
-| Zoom | Wheel or + / − buttons |
-| Latest alert | Space |
-| Cancel / clear | Escape |
-| Pause / speed | Top-bar controls; 1× or 2× |
+| Select matching visible units | Double-click a unit |
+| Contextual order | Right-click resources to gather, a foundation to build, a target to attack, or terrain to move |
+| Move | M, then click |
+| Gather | G, then click a resource patch |
+| Attack move | A, then click; predators engage compatible prey and habitats |
+| Stop | S |
+| Queue orders | Shift + order, up to 12 |
+| Home colony | H or Home |
+| Next idle worker | . or Idle |
+| Assign / recall group | Ctrl + 1–9 / 1–9 |
+| Pan | Arrow keys, Alt + drag, middle drag, or optional minimap |
+| Zoom | Mouse wheel / touchpad scroll |
+| Pause | Space or Pause |
+| Clear selection / mode | Escape |
+| Cancel active placement | Right-click |
 
-A Chromebook two-finger click normally supplies right click. Every primary map order also has a visible button followed by an ordinary click. Native browser shortcuts may take precedence over some control-group keys; pointer controls remain available.
+Touchpad alternative: choose a visible command button, then left-click the destination. Commands remain available while paused. Browsers may reserve some keyboard shortcuts.
 
-## Implemented
+## Units and habitats
 
-- Fixed 10 Hz simulation, render loop, seeded world and procedural original art.
-- Five species classes with morphology and locomotion differences: motile alga, recycler bacterium, matrix builder, bacterivorous ciliate and amoeba.
-- Five habitats, six navigable stone obstacles, pan/zoom, minimap, selection/groups, queued movement, attack-move, hold and division controls.
-- Photosynthesis, substrate consumption, decomposition, prey eligibility, hunger, death, matter recycling, bounded oxygen and conservative diffusion.
-- Conservation, sustainable harvest and unrestricted feeding policies; prey reserves and per-species division ceilings.
-- Gradual biomass-funded extracellular matrix, access delay and enemy movement penalty.
-- Deforming amoeba outlines, engulfment arms and digestion vacuoles; cilia/flagella; division cues and daughter separation; high-zoom detail and low-zoom simplification.
-- Heuristic enemy expansion, mixed populations, compatible prey targeting, hunger response and selection of less-defended expansion sites. Both sides obey the same ecological rules.
-- Capture and victory conditions; pause, 2×, restart/rematch, notifications, tutorial, scientific overlays, optional inspection, sound/reduced motion and three graphics modes.
-- Browser-local settings and saves; JSON import/export with version and structure validation.
+| Item | Cost: food / minerals | Purpose |
+| --- | --- | --- |
+| Worker bacterium | 40 / 0 | Gathers, returns resources, constructs habitats; cannot fight |
+| Ciliate | 70 / 20 | Fast bacterial grazer; attacks workers and habitats |
+| Amoeba | 130 / 45 | Slow predator; attacks bacteria, ciliates, and habitats; requires maturation |
+| Algal bed | 70 / 25 | +8 population space and 0.5 food per second |
+| Grazing pool | 100 / 60 | Produces predators and receives gathered resources |
+| Colony maturation | 160 / 100 | Unlocks amoebae after 45 seconds; requires a completed grazing pool |
 
-## Biology model and deliberate compromises
+Starting capacity is 10; maximum is 48 units per side. Production reserves population slots and supports five queued tasks per building. Cancelling the last queued task refunds its cost. Equal-sized predators cannot engulf one another. These restrictions are readable diet roles, not exact species-level ecology.
 
-The organisms are functional analogues, not calibrated species. The alga references Chlamydomonas-like morphology; the ciliate references a bacterial-grazing Tetrahymena-like role. Real microbes do not recognize allies, choose targeted mutations or capture map circles. Cooperative factions, player policies, influence scores and population targets are management/game abstractions.
+## Art, biology, and performance
 
-Matter units are conserved after initialization:
+Pale gray and cream cells reflect the near-colorless appearance of many unstained microbes. Algae have green chloroplasts. Blue and red markers identify ownership, not biological pigmentation. The interface uses opaque cream panels and slate text.
 
-- Algal biomass consumes 0.8 inorganic-carbon and 0.2 mineral units per mass unit. Light supplies its energy index; small exudation transfers biomass to dissolved organics.
-- Recycler breakdown transfers detritus into 75% dissolved organic matter and 25% inorganic pools. Bacterial assimilation retains up to 60% of consumed dissolved matter; the remainder is remineralized.
-- Predators retain up to 65% of prey biomass, limited by growth capacity; all unretained prey matter enters detritus.
-- Starvation catabolism returns mass to 80% inorganic carbon / 20% minerals. Natural deaths deposit remaining biomass as detritus.
-- Matrix production transfers cellular biomass into matrix. Matrix decay returns it to dissolved organic matter.
-- Division splits existing biomass and stored energy between daughters. It does not duplicate either. A daughter must grow again before dividing.
+The terrain is generated once. Organism frames and directions are cached in 99 small sprite canvases. Visible cells use image blits rather than regenerated detailed anatomy. The default renderer uses 80% internal resolution, crisp pixel scaling, and a 30 FPS cap. Motion interpolates between fixed 10 Hz simulation steps. Display options offer 65%, 80%, or full resolution; 30 or 60 FPS; and still sprites. Background tabs stop simulation work and do not catch up on return.
 
-These coefficients are bookkeeping, not actual elemental stoichiometry. The energy index is uncalibrated and does not explicitly resolve ATP, heat or growth-associated energy expenditure. Maintenance consumes it; photosynthesis and substrate oxidation/feeding replenish it. Oxygen is a separate 0–1 index with atmospheric exchange; it is excluded from the closed abstract matter ledger. Light and oxygen are not conserved. The two selected bacterial analogues tolerate low oxygen; protists are oxygen-sensitive. All organisms must maintain structural mass.
+Bacteria are rods, ciliates have short surface hairs, and amoebae have changing pseudopodia and visible vacuoles. Sizes and times are compressed. Worker hauling, bases, production queues, factions, attacks, and maturation are **RTS abstractions**, not calibrated biology. This version does not simulate conserved matter, chemical fields, a fluid solver, or full ecosystem metabolism.
 
-Spatial and time units are stylized. Bacteria are physically smaller than protists but the ratios are compressed for selection and readability. Amoebae represent crawling on a submerged interface. Motion is drag-dominated steering and separation, not CFD. Chloroplasts are limited to algae. Invisible fields are drawn only under labeled scientific overlays.
+Microscopy references: [colorless freshwater organisms](https://www.microscopy-uk.org.uk/mag/art98/sdurr.html), [freshwater algae](https://www.microscopy-uk.org.uk/pond/algae.html).
 
-Conservation completely forbids friendly predation in this version. Sustainable harvest permits it only above reserves, with algae reserve = ceil(0.65 × selected reserve), ciliate reserve = ceil(0.25 × reserve), and bacterial reserve = selected reserve. Unrestricted removes allegiance protections, not prey-size or diet restrictions. These policies cannot make all populations indefinitely sustainable.
+## Saves and offline play
 
-## Local development
+Menu provides save/load and JSON import/export. Matches automatically save on leaving after five seconds of play. Browser storage may be restricted; export a save if needed. Version 2 uses `microbial-empires.v2.match` and `microbial-empires.v2.settings`. Old version 1 saves remain separate and are not compatible with the redesigned rules.
 
-Node 22.18+ is recommended (the tests use native TypeScript stripping). Install dependencies once:
+`npm run build` creates `dist/PLAY_OFFLINE.html`, a self-contained file that can be opened without a server or network. The hosted game has no third-party runtime assets or backend, but is not a PWA and is not guaranteed to reload offline. No analytics, advertising, accounts, or student data collection.
+
+## Development and deployment
+
+Use Node 22.18+:
 
 ```sh
 npm ci
 npm test
-npm run dev
-```
-
-Open the Vite URL printed by the development server. To build:
-
-```sh
 npm run build
 npm run simulate
 ```
 
-`build` runs TypeScript checking, creates `dist/` and generates `dist/PLAY_OFFLINE.html`. `simulate` runs seeded full-match checks and CPU benchmarks. No framework or runtime asset CDN is required. Vite's relative `base: './'` supports isolated GitHub Pages repository paths.
+For local development, `npm run dev` starts Vite. Static hosting should serve all files in `dist/`; relative asset paths support a repository subpath. GitHub Actions tests and builds each push to main, then publishes this repository's Pages site.
 
-## Project map
-
-| Path | Responsibility |
+| File | Responsibility |
 | --- | --- |
-| `src/entities/` | Species definitions, organism state and faction appearance |
-| `src/game/World.ts` | Match state, orchestration, commands, capture and ecological interactions |
-| `src/game/Camera.ts`, `Controls.ts`, `SpatialHash.ts` | RTS input, viewport and local neighborhood queries |
-| `src/simulation/` | Metabolism, fields, feeding eligibility, division and victory rules |
-| `src/ai/` | Cached coarse A* navigation and strategic decision rules |
-| `src/graphics/` | Procedural cell animation, cached terrain, LOD, overlays and minimap |
-| `src/save/` | Versioned validated save serialization |
-| `src/main.ts`, `index.html`, `src/style.css` | HUD, dialogs, settings and application lifecycle |
-| `tests/` | Invariants, regression checks, matches and performance scenarios |
-| `scripts/offline-build.mjs` | Standalone compiled HTML packaging |
-| `.github/workflows/pages.yml` | Test, build and deployment to this repository's Pages site |
+| `src/rts/model.ts` | Types, costs, roles, limits, and diet rules |
+| `src/rts/Engine.ts` | Economy, construction, queues, combat, rival AI, and validated saves |
+| `src/rts/Renderer.ts` | Cached pixel sprites, static pond, viewport culling, and minimap |
+| `src/rts/Input.ts` | Selection, contextual orders, placement, groups, and camera controls |
+| `src/ai/Pathfinding.ts` | Cached coarse A* navigation around rocks |
+| `src/main.ts`, `index.html`, `src/style.css` | Selection-based HUD, settings, dialogs, and render scheduling |
+| `tests/` | Behavior tests and CPU simulations |
+| `scripts/offline-build.mjs` | Single-file offline packaging |
 
-For balance changes, start in `Species.ts`, `Metabolism.ts`, `World.ts` and `StrategicAI.ts`. Keep simulation changes independent of animation. Add a save migration and increment its schema version if saved state becomes incompatible. Never reuse another game's keys.
-
-## Performance approach and limits
-
-Spatial hashing avoids all-cell pair comparisons for neighbors and feeding. A coarse-grid route cache and staggered individual decisions limit navigation work. Static terrain is drawn once; organisms are culled outside the viewport. Rendering quality changes animation detail and pixel density. The fixed timestep is independent of refresh rate.
-
-This first version uses Canvas 2D rather than Phaser/WebGL: it keeps the initial runtime small and makes procedural amoeba outlines straightforward. It does not yet have GPU atlases, pooled organisms, worker simulation, interpolated positions, adaptive resolution or fully hierarchical tactical squads. Large caps remain experimental. Avoid claiming Chromebook FPS from the included server-side benchmark.
-
-## GitHub Pages deployment
-
-This source is maintained in the standalone `GabrielW1005/microbial-empires` repository. Its Settings → Pages source is **GitHub Actions**. Every push to `main` runs the test suite, builds the static game, and deploys `dist/` with `.github/workflows/pages.yml`.
-
-The expected Pages URL is `https://GabrielW1005.github.io/microbial-empires/`. The workflow run reports the deployed URL and status. An offline copy is generated at `dist/PLAY_OFFLINE.html` by `npm run build`.
-
-**Keep this project in its own repository. Never push it to `GabrielW1005/GabrielW1005.github.io` or any other existing game.**
-
-## Roadmap
-
-1. Classroom hardware and human balance pass: Chrome/ChromeOS pointer behavior, 1366×768 and 1024×600 layout, real FPS, stuck-unit observation, match pacing and learnability.
-2. Tactical depth: persistent squads, reliable retreats/escorts, rally points, richer site-resource dynamics, selective fog of war and clearer early-game goals.
-3. Biology/art: explicit growth energy budgets, more accurate taxon-specific anatomy/engulfment, size scaling, species-specific oxygen responses and visual damage cues.
-4. Renderer scale: GPU sprite atlas, pooled render data, interpolated positions, adaptive resolution and 300/500-cell classroom profiling.
-5. Heredity and development: distinguish acclimation, descendant traits and community structures; add trade-offs rather than instant targeted mutations.
-6. New habitats and lineages, then deterministic replay and carefully designed multiplayer. Multiplayer needs a separate networking design; this build has no backend.
-
-## Scientific reading and licenses
-
-- OpenStax, *Biology 2e*, [Characteristics of protists](https://openstax.org/books/biology-2e/pages/23-2-characteristics-of-protists) and [Groups of protists](https://openstax.org/books/biology-2e/pages/23-3-groups-of-protists).
-- [Microbial Primer: An introduction to biofilms](https://pmc.ncbi.nlm.nih.gov/articles/PMC7615007/).
-- [Extracellular Metabolism Sets the Table for Microbial Cross-Feeding](https://pmc.ncbi.nlm.nih.gov/articles/PMC7849352/).
-
-Original source and procedural art are supplied under MIT (LICENSE). TypeScript is Apache-2.0; Vite is MIT; build-tool transitive license files remain in their npm packages. @types/node is MIT. No artwork, audio, code or interface assets from other games are included. All audio is optional procedural synthesis. See VALIDATION.md for testing evidence and limitations.
+See VALIDATION.md for checks and limits. One map, one AI opponent, no fog of war or multiplayer. Human balance and actual low-end device FPS remain to be tested. Original source and pixel artwork are MIT licensed. No commercial game assets are used.

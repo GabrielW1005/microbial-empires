@@ -1,4 +1,5 @@
-import type {Point,Obstacle} from '../entities/Organism.ts';
+import type {Point} from '../rts/model.ts';
+type Obstacle=Point&{radius:number};
 import {clamp,dist} from '../game/math.ts';
 export class Navigation{
  obstacles:Obstacle[];width=41;height=27;cell=64;cache=new Map<string,Point[]|null>();

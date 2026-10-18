@@ -1,5 +1,5 @@
 import {clamp} from './math.ts';
-import type {Point} from '../entities/Organism.ts';
+import type {Point} from '../rts/model.ts';
 export class Camera{
  x=650;y=840;zoom=.85;width=1000;height=650;
  world(p:Point){return {x:(p.x-this.width/2)/this.zoom+this.x,y:(p.y-this.height/2)/this.zoom+this.y}}
