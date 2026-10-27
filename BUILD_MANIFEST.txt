@@ -1,4 +1,4 @@
-Microbial Empires 0.2.1
+Microbial Empires 0.2.2
 Standalone GitHub repository: GabrielW1005/microbial-empires
 
 Source files:
@@ -27,6 +27,7 @@ tests/matches.ts
 tests/rts.test.ts
 tsconfig.json
 validation/automated-tests.txt
+validation/color-render-cost.json
 validation/matches-and-cpu-benchmarks.txt
 validation/render-comparison.json
 vite.config.ts

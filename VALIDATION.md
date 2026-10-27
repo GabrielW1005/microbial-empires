@@ -1,14 +1,13 @@
-# Validation — v0.2.1
+# Validation — v0.2.2
 
 Checked on 2026-10-27.
 
-The visual update preserves the v0.2 rules, controls, opening population, and save schema.
+This is a palette and static-art update. The engine, input controls, opening population, resource rules, and v2 save schema are unchanged.
 
-- `npm test`: **14 behavioral tests pass**, covering the three-worker opening, gather/return cycles, production, construction, maturation, navigation, diet restrictions, victory, AI expansion, saves, and malformed saves.
-- Renderer QA uses the actual Canvas drawing code, renders both the opening and all organism/habitat types, and compares native draw cost with the preceding pixel renderer on the same server. These are native Canvas timings, not measured browser or Chromebook FPS.
-- Detailed anatomy, shading, resource art, rock art, and pond textures are created only during initialization. The frame loop uses cached images, transforms, culling, and simple selection indicators. No runtime asset downloads or real-time lighting are introduced.
-- Native Canvas results: opening mean 2.79 ms / p95 4.43 ms; crowded 96-cell scene mean 5.03 ms / p95 7.15 ms; startup generation 48.77 ms once. The 45 cached surfaces occupy about 10.59 MiB. The previous pixel renderer was faster (crowded mean 2.56 ms / p95 3.87 ms); the smoother version remains below the 33.3 ms frame budget in this test. See `validation/render-comparison.json`.
-- `npm run build` passes strict TypeScript checking, static production bundling, and offline HTML generation.
-- The default remains 80% internal resolution and a 30 FPS render cap, with fixed 10 Hz simulation and movement interpolation. Hidden tabs pause work. Maximum population remains 48 units per side.
+- NatureScot's freshwater algae, cyanobacteria, and diatom references informed the green, blue-green, and golden-brown background palette. The biology notes distinguish photosynthetic pigments from artistic water/lighting colors and decorative background growth from resource nodes.
+- The shaded artwork, texture, and decorative background growth are rendered into the existing cached surfaces during initialization. Per-frame code continues to use image draws, transforms, culling, and selection indicators.
+- A native Canvas preview checks the opening, all three organism types, all three habitats, and a crowded 96-cell scene. This measures native drawing on a server, not browser or Chromebook FPS.
+- Final native Canvas sample: opening mean 2.20 ms / p95 2.83 ms; crowded scene mean 4.71 ms / p95 8.19 ms. Cache remains 45 surfaces / 10.59 MiB. Timings fluctuate with server load; these are not device FPS guarantees. See `validation/color-render-cost.json`.
+- The default remains 80% internal resolution and a 30 FPS cap; simulation remains 10 Hz with interpolation. Population remains capped at 48 per side.
 
-The v0.2 gameplay and economy were verified in the public browser, including food and mineral return, completed worker production, and selection-only commands. The visual update receives a fresh public browser check after deployment. Physical Chromebook frame rates, small-screen layout checks, and classroom balance remain unverified.
+The existing 14 gameplay tests and production build run in GitHub Actions before publication. Public browser verification checks the deployed version, appearance, and selection. Physical Chromebook frame rates remain unverified.

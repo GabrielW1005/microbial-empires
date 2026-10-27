@@ -4,7 +4,7 @@ import {UNITS,BUILDINGS,WIDTH,HEIGHT} from './model.ts';
 import type {UnitKind,BuildingKind,Point} from './model.ts';
 import {CELL_SIZE,HABITAT_WIDTH,HABITAT_HEIGHT,RESOURCE_SIZE,makeCell,makeHabitat,makePond,makeResource,makeRock} from './Art.ts';
 
-const TEAM=['#2866b6','#b24b3f'];
+const TEAM=['#245fca','#c14d35'];
 const FRAMES=6;
 export class Renderer {
  canvas:HTMLCanvasElement;ctx:CanvasRenderingContext2D;camera:Camera;scale=.8;fps=30;
@@ -20,11 +20,11 @@ export class Renderer {
   for(const kind of ['food','mineral']as const)this.sprites.set(kind,makeResource(kind));
   for(let i=0;i<3;i++)this.sprites.set('rock:'+i,makeRock(i));
  }
- label(text:string,p:Point){const x=this.ctx;x.font='600 11px Arial, sans-serif';x.textAlign='center';x.lineWidth=2.5;x.strokeStyle='#dce5dc';x.strokeText(text,p.x,p.y);x.fillStyle='#475b56';x.fillText(text,p.x,p.y);}
+ label(text:string,p:Point){const x=this.ctx;x.font='600 11px Arial, sans-serif';x.textAlign='center';x.lineWidth=2.5;x.strokeStyle='#f0f2df';x.strokeText(text,p.x,p.y);x.fillStyle='#2d4c58';x.fillText(text,p.x,p.y);}
  habitat(kind:BuildingKind,p:Point){this.ctx.drawImage(this.sprites.get(kind)!,p.x-HABITAT_WIDTH/2,p.y-HABITAT_HEIGHT/2,HABITAT_WIDTH,HABITAT_HEIGHT);}
  ring(p:Point,rx:number,ry:number,color:string,width=1.6){const x=this.ctx;x.strokeStyle=color;x.lineWidth=width;x.beginPath();x.ellipse(p.x,p.y,rx,ry,0,0,Math.PI*2);x.stroke();}
  draw(w:Engine,selected:Set<number>,building:number|null,clock:number,alpha=1){
-  const x=this.ctx,c=this.camera,s=this.scale;x.setTransform(s,0,0,s,0,0);x.imageSmoothingEnabled=true;x.fillStyle='#bed2cf';x.fillRect(0,0,c.width,c.height);x.save();x.translate(c.width/2,c.height/2);x.scale(c.zoom,c.zoom);x.translate(-c.x,-c.y);x.drawImage(this.terrain,0,0,WIDTH,HEIGHT);
+  const x=this.ctx,c=this.camera,s=this.scale;x.setTransform(s,0,0,s,0,0);x.imageSmoothingEnabled=true;x.fillStyle='#d1b985';x.fillRect(0,0,c.width,c.height);x.save();x.translate(c.width/2,c.height/2);x.scale(c.zoom,c.zoom);x.translate(-c.x,-c.y);x.drawImage(this.terrain,0,0,WIDTH,HEIGHT);
   const visible=(p:Point,r=80)=>Math.abs(p.x-c.x)<c.width/(2*c.zoom)+r&&Math.abs(p.y-c.y)<c.height/(2*c.zoom)+r;
   for(let i=0;i<w.obstacles.length;i++){const o=w.obstacles[i];if(!visible(o,o.radius+30))continue;const width=o.radius*2.6,height=width*188/220;x.drawImage(this.sprites.get('rock:'+i%3)!,o.x-width/2,o.y-height/2,width,height);}
   for(const r of w.resources){if(r.amount<=0||!visible(r))continue;x.drawImage(this.sprites.get(r.kind)!,r.x-RESOURCE_SIZE/2,r.y-RESOURCE_SIZE/2,RESOURCE_SIZE,RESOURCE_SIZE);this.label(r.kind==='food'?'FOOD':'MINERALS',{x:r.x,y:r.y+47});}
@@ -43,7 +43,7 @@ export class Renderer {
    const frame=this.reduced||!u.moving&&u.bite<=0?0:Math.floor(w.time*6)%FRAMES;
    x.save();x.translate(px,py);x.rotate(u.angle);x.drawImage((c.zoom*s>1.15?this.sprites:this.smallCells).get(`${u.kind}:${frame}`)!,-CELL_SIZE/2,-CELL_SIZE/2,CELL_SIZE,CELL_SIZE);x.restore();
    x.fillStyle='#edf2e5';x.beginPath();x.arc(px,py+r*.65+8,3,0,Math.PI*2);x.fill();x.fillStyle=TEAM[u.team];x.beginPath();x.arc(px,py+r*.65+8,2.2,0,Math.PI*2);x.fill();
-   if(u.cargo>0){x.fillStyle=u.resource==='food'?'#a07b47':'#899ba3';x.beginPath();x.ellipse(px+11,py-8,4.2,3.2,-.4,0,Math.PI*2);x.fill();x.strokeStyle='#e9e9d5';x.lineWidth=.8;x.stroke();}
+   if(u.cargo>0){x.fillStyle=u.resource==='food'?'#c18435':'#819bad';x.beginPath();x.ellipse(px+11,py-8,4.2,3.2,-.4,0,Math.PI*2);x.fill();x.strokeStyle='#e9e9d5';x.lineWidth=.8;x.stroke();}
    if(sel||u.hp<UNITS[u.kind].hp){x.fillStyle='#e9eddf';x.fillRect(px-14,py-r-11,28,5);x.fillStyle='#84958a';x.fillRect(px-13,py-r-10,26,3);x.fillStyle=TEAM[u.team];x.fillRect(px-13,py-r-10,26*u.hp/UNITS[u.kind].hp,3);}
    if(u.bite>0&&u.kind!=='worker'){const q={x:px+Math.cos(u.angle)*r,y:py+Math.sin(u.angle)*r};this.ring(q,5,5,'#7f8f72',1);}
    if(u.flash>0)this.ring({x:px,y:py},r+4,r*.75+3,'#b65442',1.6);

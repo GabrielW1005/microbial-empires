@@ -1,4 +1,4 @@
-# Microbial Empires · v0.2.1
+# Microbial Empires · v0.2.2
 
 A small, deliberate single-player RTS inspired by pond microbes and classic RTS mechanics, with smoothly shaded, pre-rendered-style 2D art. Begin with **one home colony and three workers**. Gather resources, construct habitats, queue units, and expand at your own pace.
 
@@ -54,13 +54,13 @@ Starting capacity is 10; maximum is 48 units per side. Production reserves popul
 
 ## Art, biology, and performance
 
-Pale gray and cream cells reflect the near-colorless appearance of many unstained microbes. Algae have green chloroplasts. Blue and red markers identify ownership, not biological pigmentation. The interface uses opaque cream panels and slate text.
+Pale gray and cream bodies keep playable microbes recognizable as unstained cells. Natural color comes mainly from green chloroplast-bearing algae, golden-brown diatom-like background forms, muted blue-green cyanobacterial films, copper-brown detritus, and varied sediment. Cyanobacteria are photosynthetic bacteria without chloroplasts. Blue water tint, lighting, and subtle cell shading are artistic readability choices, not a literal microscope image. Decorative background growth does not add units or gatherable resources. Blue and red markers identify ownership. The interface retains opaque cream panels.
 
 Detailed terrain, cell anatomy, soft shading, and six animation frames per organism are drawn into cached images once at startup. The frame loop reuses those images with smooth scaling and rotation. Cached smaller cell images serve normal views; larger images provide detail when zoomed in. Lighting, textures, and membrane details are not recalculated for every visible cell. The default renderer uses 80% internal resolution and a 30 FPS cap. Motion interpolates between fixed 10 Hz simulation steps. Display options offer 65%, 80%, or full resolution; 30 or 60 FPS; and still sprites. Background tabs stop simulation work and do not catch up on return.
 
 Bacteria are rods, ciliates have short surface hairs, and amoebae have changing pseudopodia and visible vacuoles. Sizes and times are compressed. Worker hauling, bases, production queues, factions, attacks, and maturation are **RTS abstractions**, not calibrated biology. This version does not simulate conserved matter, chemical fields, a fluid solver, or full ecosystem metabolism.
 
-Microscopy references: [colorless freshwater organisms](https://www.microscopy-uk.org.uk/mag/art98/sdurr.html), [freshwater algae](https://www.microscopy-uk.org.uk/pond/algae.html).
+Scientific references: [NatureScot freshwater algae and pigments](https://www.nature.scot/plants-animals-and-fungi/algae/freshwater-algae), [cyanobacteria](https://www.nature.scot/plants-animals-and-fungi/algae/freshwater-algae/blue-green-algae), [diatoms](https://www.nature.scot/plants-animals-and-fungi/algae/freshwater-algae/yellow-brown-algae), [colorless freshwater organisms](https://www.microscopy-uk.org.uk/mag/art98/sdurr.html), [freshwater algae](https://www.microscopy-uk.org.uk/pond/algae.html).
 
 ## Saves and offline play
 

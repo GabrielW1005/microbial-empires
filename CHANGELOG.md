@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.2 — 2026-10-27
+
+- Add a richer natural palette: blue pond backdrop, golden sediment, copper/russet detritus, varied mineral tones, and stronger greens in algal beds.
+- Bake sparse green algae, golden-brown diatom-like forms, and muted blue-green films into the static background. These decorations do not add units or resource nodes.
+- Keep most microbes pale, with contrasting warm/cool shading and separate ownership markers.
+- Explain biological pigments versus artistic water/lighting colors in the field notes, with NatureScot references.
+- Retain the pre-rendered-style sprite cache, simple opening, and selection-only interface.
+
 ## 0.2.1 — 2026-10-27
 
 - Replace blocky pixel art with smoothly shaded, pre-rendered-style cell sprites, organic habitats, resource patches, and pond terrain.

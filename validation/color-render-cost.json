@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-27",
+  "viewportCSS": [
+    1366,
+    712
+  ],
+  "renderScale": 0.8,
+  "tag": "colorful",
+  "initMs": 47,
+  "surfaceCount": 45,
+  "cacheMB": 10.59,
+  "opening": {
+    "meanDrawMs": 2.2,
+    "p95DrawMs": 2.83
+  },
+  "crowded": {
+    "meanDrawMs": 4.71,
+    "p95DrawMs": 8.19
+  },
+  "note": "Native Canvas on this server; not browser or Chromebook FPS."
+}
