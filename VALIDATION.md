@@ -1,13 +1,14 @@
-# Validation — v0.2.0
+# Validation — v0.2.1
 
-Checked on 2026-10-18.
+Checked on 2026-10-27.
 
-- `npm test`: **14 behavioral tests pass**, covering the three-worker opening, absence of automatic growth, gather/return cycles, finite patches, mixed-resource carrying, production costs and time, cancellation refunds, reserved population, construction, maturation, obstacle navigation, diet restrictions, victory, rival grace period and expansion, save continuation, and malformed saves.
-- `npm run build`: TypeScript strict checking, Vite build, and standalone offline HTML generation pass. Compiled game JavaScript is about 43 kB before gzip; no framework or remote runtime assets.
-- `npm run simulate`: the resource-constrained rival wins against a completely idle player at 345.2 simulated seconds; no invalid unit coordinates. This is a basic match-completion check, not a human balance result.
-- CPU sample: simulation p95 was 0.024 ms at 6 cells, 0.416 ms at 48, and 0.398 ms at 96 on this server. One simulation tick represents 100 ms. See raw evidence in `validation/`.
-- The actual Canvas renderer was executed through a native Canvas implementation and its opening image visually inspected. It generated 99 sprite canvases. At the default resolution, the 1366×712 CSS viewport used a 1093×570 backing canvas. Mean native draw time was 4.4 ms, p95 8.9 ms, over 120 opening frames.
+The visual update preserves the v0.2 rules, controls, opening population, and save schema.
 
-The timings above are server measurements, not browser or Chromebook FPS. The default 30 FPS cap is a rendering target, not a measured hardware guarantee. Human match balance, school Chromebook performance, and extensive accessibility testing remain open.
+- `npm test`: **14 behavioral tests pass**, covering the three-worker opening, gather/return cycles, production, construction, maturation, navigation, diet restrictions, victory, AI expansion, saves, and malformed saves.
+- Renderer QA uses the actual Canvas drawing code, renders both the opening and all organism/habitat types, and compares native draw cost with the preceding pixel renderer on the same server. These are native Canvas timings, not measured browser or Chromebook FPS.
+- Detailed anatomy, shading, resource art, rock art, and pond textures are created only during initialization. The frame loop uses cached images, transforms, culling, and simple selection indicators. No runtime asset downloads or real-time lighting are introduced.
+- Native Canvas results: opening mean 2.79 ms / p95 4.43 ms; crowded 96-cell scene mean 5.03 ms / p95 7.15 ms; startup generation 48.77 ms once. The 45 cached surfaces occupy about 10.59 MiB. The previous pixel renderer was faster (crowded mean 2.56 ms / p95 3.87 ms); the smoother version remains below the 33.3 ms frame budget in this test. See `validation/render-comparison.json`.
+- `npm run build` passes strict TypeScript checking, static production bundling, and offline HTML generation.
+- The default remains 80% internal resolution and a 30 FPS render cap, with fixed 10 Hz simulation and movement interpolation. Hidden tabs pause work. Maximum population remains 48 units per side.
 
-GitHub Actions runs the same tests and production build before publishing. The deployed public page was opened in Chrome and verified to show v0.2 with three workers and a home colony. Live checks confirmed worker selection, food and mineral orders, reserved population after queuing a worker, and the command panel disappearing on empty-ground selection. The worker command row was tightened after visual review. Only browser-extension errors appeared in the inspected error log; no game-script errors were observed. The remote viewport was 1363×936; smaller-device and physical Chromebook checks remain unverified.
+The v0.2 gameplay and economy were verified in the public browser, including food and mineral return, completed worker production, and selection-only commands. The visual update receives a fresh public browser check after deployment. Physical Chromebook frame rates, small-screen layout checks, and classroom balance remain unverified.

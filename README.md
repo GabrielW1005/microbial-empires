@@ -1,6 +1,6 @@
-# Microbial Empires · v0.2.0
+# Microbial Empires · v0.2.1
 
-A small, deliberate single-player RTS inspired by pond microbes and classic 1990s strategy games. Begin with **one home colony and three workers**. Gather resources, construct habitats, queue units, and expand at your own pace.
+A small, deliberate single-player RTS inspired by pond microbes and classic RTS mechanics, with smoothly shaded, pre-rendered-style 2D art. Begin with **one home colony and three workers**. Gather resources, construct habitats, queue units, and expand at your own pace.
 
 **Play:** https://gabrielw1005.github.io/microbial-empires/
 
@@ -56,7 +56,7 @@ Starting capacity is 10; maximum is 48 units per side. Production reserves popul
 
 Pale gray and cream cells reflect the near-colorless appearance of many unstained microbes. Algae have green chloroplasts. Blue and red markers identify ownership, not biological pigmentation. The interface uses opaque cream panels and slate text.
 
-The terrain is generated once. Organism frames and directions are cached in 99 small sprite canvases. Visible cells use image blits rather than regenerated detailed anatomy. The default renderer uses 80% internal resolution, crisp pixel scaling, and a 30 FPS cap. Motion interpolates between fixed 10 Hz simulation steps. Display options offer 65%, 80%, or full resolution; 30 or 60 FPS; and still sprites. Background tabs stop simulation work and do not catch up on return.
+Detailed terrain, cell anatomy, soft shading, and six animation frames per organism are drawn into cached images once at startup. The frame loop reuses those images with smooth scaling and rotation. Cached smaller cell images serve normal views; larger images provide detail when zoomed in. Lighting, textures, and membrane details are not recalculated for every visible cell. The default renderer uses 80% internal resolution and a 30 FPS cap. Motion interpolates between fixed 10 Hz simulation steps. Display options offer 65%, 80%, or full resolution; 30 or 60 FPS; and still sprites. Background tabs stop simulation work and do not catch up on return.
 
 Bacteria are rods, ciliates have short surface hairs, and amoebae have changing pseudopodia and visible vacuoles. Sizes and times are compressed. Worker hauling, bases, production queues, factions, attacks, and maturation are **RTS abstractions**, not calibrated biology. This version does not simulate conserved matter, chemical fields, a fluid solver, or full ecosystem metabolism.
 
@@ -85,11 +85,12 @@ For local development, `npm run dev` starts Vite. Static hosting should serve al
 | --- | --- |
 | `src/rts/model.ts` | Types, costs, roles, limits, and diet rules |
 | `src/rts/Engine.ts` | Economy, construction, queues, combat, rival AI, and validated saves |
-| `src/rts/Renderer.ts` | Cached pixel sprites, static pond, viewport culling, and minimap |
+| `src/rts/Art.ts` | Initialization-only shaded artwork and texture generation |
+| `src/rts/Renderer.ts` | Cached shaded sprites, static pond, viewport culling, and minimap |
 | `src/rts/Input.ts` | Selection, contextual orders, placement, groups, and camera controls |
 | `src/ai/Pathfinding.ts` | Cached coarse A* navigation around rocks |
 | `src/main.ts`, `index.html`, `src/style.css` | Selection-based HUD, settings, dialogs, and render scheduling |
 | `tests/` | Behavior tests and CPU simulations |
 | `scripts/offline-build.mjs` | Single-file offline packaging |
 
-See VALIDATION.md for checks and limits. One map, one AI opponent, no fog of war or multiplayer. Human balance and actual low-end device FPS remain to be tested. Original source and pixel artwork are MIT licensed. No commercial game assets are used.
+See VALIDATION.md for checks and limits. One map, one AI opponent, no fog of war or multiplayer. Human balance and actual low-end device FPS remain to be tested. Original source and shaded sprite artwork are MIT licensed. No commercial game assets are used.

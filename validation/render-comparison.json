@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-27",
+  "viewportCSS": [
+    1366,
+    712
+  ],
+  "renderScale": 0.8,
+  "samplesPerScene": 150,
+  "before": {
+    "tag": "pixel-baseline",
+    "initMs": 7.56,
+    "surfaceCount": 100,
+    "cacheMB": 5.9,
+    "opening": {
+      "meanDrawMs": 1.87,
+      "p95DrawMs": 2.54
+    },
+    "crowded": {
+      "meanDrawMs": 2.56,
+      "p95DrawMs": 3.87
+    },
+    "note": "Native Canvas on this server; not browser or Chromebook FPS."
+  },
+  "after": {
+    "tag": "smooth-mipmap",
+    "initMs": 48.77,
+    "surfaceCount": 45,
+    "cacheMB": 10.59,
+    "opening": {
+      "meanDrawMs": 2.79,
+      "p95DrawMs": 4.43
+    },
+    "crowded": {
+      "meanDrawMs": 5.03,
+      "p95DrawMs": 7.15
+    },
+    "note": "Native Canvas on this server; not browser or Chromebook FPS."
+  }
+}

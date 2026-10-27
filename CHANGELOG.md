@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1 — 2026-10-27
+
+- Replace blocky pixel art with smoothly shaded, pre-rendered-style cell sprites, organic habitats, resource patches, and pond terrain.
+- Cache anatomical details, shading, and textures once; reuse the images during play. Retain the 30 FPS default and existing population limit.
+- Use smooth image scaling and soften the opaque interface edges.
+- Preserve the three-worker opening, economy, controls, and v2 save compatibility.
+
 ## 0.2.0 — 2026-10-18
 
 - Replace the crowded automatic ecosystem opening with one home colony and three workers.
