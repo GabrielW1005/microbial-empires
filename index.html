@@ -1,17 +1,88 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#e5dfcf"><meta name="description" content="A small, deliberate microbial RTS. Begin with a colony and three workers. Gather, build, and expand."><title>Microbial Empires — Colony RTS v0.2.2</title><link rel="icon" href="./favicon.svg"><link rel="stylesheet" href="/src/style.css"></head>
-<body><div id="app">
-<header class="topbar"><div class="brand">MICROBIAL <b>EMPIRES</b><span>v0.2.2</span></div><div class="resources" aria-label="Resources"><span title="Organic matter gathered from brown food patches"><i class="food-icon"></i>Food <b id="food">70</b></span><span title="Minerals gathered from gray deposits"><i class="mineral-icon"></i>Minerals <b id="mineral">40</b></span><span title="Units plus reserved production slots / population capacity">Cells <b id="population">3 / 10</b></span></div><time id="clock">00:00</time><button id="pause" title="Pause / resume (Space)">Pause</button><button id="menu">Menu</button></header>
-<main id="field"><canvas id="world" tabindex="0" aria-label="Pond battlefield. Click a blue-marked worker or colony to select it. Right-click a resource to gather. Drag to select a group."></canvas>
-<aside id="guide" class="guide"><div><span class="eyebrow" id="step-label">01 / ESTABLISH</span><button id="dismiss-guide" aria-label="Hide guidance">×</button></div><b id="guide-title">Start with food.</b><p id="guide-text">Click a worker, then right-click the brown food patch.</p><small id="peace">Rival stays home for 5:00</small></aside>
-<div class="view-controls"><button id="home" title="Select home colony (H)">Home <kbd>H</kbd></button><button id="idle" title="Find an idle worker (.)">Idle <b id="idle-count">3</b></button><button id="map-toggle" aria-expanded="false" aria-controls="map-panel">Map</button></div>
-<aside id="map-panel" hidden><canvas id="minimap" width="208" height="136" aria-label="Pond overview. Click to move the camera."></canvas><small>YOU · BLUE <span>RIVAL · RED</span></small></aside>
-<section id="selection" class="selection" aria-label="Selected units and commands" hidden><div class="selection-info"><span id="selection-role" class="eyebrow"></span><h2 id="selection-name"></h2><p id="selection-detail"></p><div id="production" hidden><progress id="queue-progress" value="0" max="1"></progress><span id="queue-text"></span></div></div><div class="selection-actions"><div id="commands"></div><p id="command-hint">Right-click to give an order · Shift queues orders</p></div><button id="deselect" class="close-selection" aria-label="Clear selection">×</button></section>
-<div id="mode-hint" hidden role="status"></div><div id="toast" role="status" hidden></div><div id="paused-label" hidden>PAUSED <small>You can still give orders.</small></div><div class="map-caption">SHALLOW POND <span>Arrows to pan · Wheel to zoom</span></div>
-</main></div>
-<dialog id="menu-dialog"><div class="dialog-heading"><span class="eyebrow">MICROBIAL EMPIRES / v0.2.2</span><button data-close aria-label="Close menu">×</button></div><h1>A small beginning.</h1><p>One colony. Three workers. Build your community, then overcome the rival colony across the pond.</p><div class="menu-grid"><button id="resume" class="primary" data-close>Return to pond</button><button id="new-game">New match</button><button id="save">Save match</button><button id="load">Load saved match</button><button id="help">How to play</button><button id="settings">Display settings</button><button id="export">Export save</button><button id="import">Import save</button></div><button id="biology" class="text-button">Biology & field notes ↗</button><p id="save-note" class="note">Saves stay in this browser. No accounts or downloads required.</p></dialog>
-<dialog id="help-dialog"><div class="dialog-heading"><span class="eyebrow">FIELD GUIDE</span><button data-close aria-label="Close guide">×</button></div><h1>Gather. Build. Grow.</h1><ol class="guide-list"><li><b>Give workers a job.</b> Click a worker, then right-click brown food or gray minerals. It gathers, returns to the colony, and repeats. Send two to food and one to minerals.</li><li><b>Grow gradually.</b> Select the home colony and queue workers. Select a worker to build an algal bed for more space and a little food. Then construct a grazing pool for ciliates.</li><li><b>Expand across the pond.</b> Mature your colony to unlock amoebae. Protect your workers and destroy the rival home colony to win. The rival launches no raids during the first five minutes.</li></ol><p>On a touchpad, select a unit, click its <b>Gather</b>, <b>Move</b>, or <b>Attack move</b> button, then click the destination. Build buttons work the same way.</p><div class="key-list"><span><kbd>Drag</kbd> Select group</span><span><kbd>Shift</kbd> Add / queue</span><span><kbd>Double-click</kbd> Same kind</span><span><kbd>H</kbd> Home colony</span><span><kbd>.</kbd> Idle worker</span><span><kbd>Space</kbd> Pause</span><span><kbd>Arrows</kbd> Pan</span><span><kbd>Alt + drag</kbd> Pan</span><span><kbd>Wheel</kbd> Zoom</span><span><kbd>Ctrl + 1–9</kbd> Save group</span><span><kbd>1–9</kbd> Select group</span><span><kbd>Esc</kbd> Deselect</span></div><p class="note">Ciliates graze bacteria. Amoebae engulf bacteria and ciliates. Equal-sized predators cannot eat each other; all predators can attack habitats. Workers do not fight. Blue and red markings identify ownership.</p><button id="show-guide" class="primary">Show opening hints</button></dialog>
-<dialog id="settings-dialog"><div class="dialog-heading"><span class="eyebrow">DISPLAY</span><button data-close aria-label="Close settings">×</button></div><h1>Keep it light.</h1><div class="settings-grid"><label>Render resolution<select id="resolution"><option value="0.65">Low · fastest</option><option value="0.8" selected>Standard · recommended</option><option value="1">Full</option></select></label><label>Frame limit<select id="frame-limit"><option value="30" selected>30 FPS · recommended</option><option value="60">60 FPS</option></select></label><label class="check"><input id="reduced" type="checkbox"> Still sprites (disable frame animation)</label></div><p class="note">Shaded sprites and terrain are drawn once and reused. A limit of 48 units per side keeps the simulation small. Display settings do not change game speed.</p><button class="primary" data-close>Return to pond</button></dialog>
-<dialog id="biology-dialog"><div class="dialog-heading"><span class="eyebrow">BIOLOGY & FIELD NOTES</span><button data-close aria-label="Close biology notes">×</button></div><h1>A pond, interpreted.</h1><h3>Color with a reason.</h3><p>Most playable microbes remain pale, with stronger outlines and gentle shading for readability. Green algal cells contain chloroplasts; the golden-brown background forms represent diatoms. Muted blue-green films represent cyanobacteria, which are photosynthetic bacteria and do not have chloroplasts. Copper-brown leaves and varied sediment add natural color. The blue water tint and lighting are artistic aids, not a literal microscope view. Blue and red team marks are interface symbols, not cell pigments. Background growth is decorative; labeled patches are the gatherable resources.</p><h3>Recognizable organisms.</h3><p>Rod-shaped bacteria gather resources. Ciliates have short surface hairs and a visible nucleus. Amoebae change shape using pseudopodia and surround smaller prey. These are simplified functional types; actual diets vary between species.</p><h3>A strategy game, not a laboratory model.</h3><p>Workers carrying minerals, construction, production queues, teams, combat, and maturation are explicit RTS abstractions. Sizes, times, nutrient rates, and algal food production are compressed for play. The model does not simulate water flow, calibrated chemistry, or a conserved microbial food web.</p><p>One map, one AI opponent, no fog of war. Original shaded sprite artwork. No third-party runtime assets, advertising, tracking, or accounts.</p><p class="note">References: <a href="https://www.nature.scot/plants-animals-and-fungi/algae/freshwater-algae" target="_blank" rel="noopener">NatureScot · freshwater algae and pigments</a> · <a href="https://www.microscopy-uk.org.uk/mag/art98/sdurr.html" target="_blank" rel="noopener">Colorless freshwater organisms</a> · <a href="https://www.microscopy-uk.org.uk/pond/algae.html" target="_blank" rel="noopener">Freshwater algae</a></p></dialog>
-<dialog id="result-dialog"><span class="eyebrow">MATCH COMPLETE</span><h1 id="result-title"></h1><p id="result-detail"></p><button id="rematch" class="primary">New match</button><button data-close>View final pond</button></dialog>
-<input type="file" id="import-file" accept="application/json,.json" hidden><script type="module" src="/src/main.ts"></script></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a171b">
+  <meta name="description" content="Command a fictional microbe-inspired colony in a real-time strategy classroom game.">
+  <title>Microbial Empires</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="./favicon.svg">
+  <script type="module" src="game.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Microbial Empires home"><span class="brand-mark" aria-hidden="true">◈</span><span>Microbial <strong>Empires</strong></span></a>
+    <div class="resources" aria-label="Colony resources">
+      <span class="resource sugar" title="Sugar"><i aria-hidden="true"></i><b id="sugar">135</b><span>Sugar</span></span>
+      <span class="resource mineral" title="Minerals"><i aria-hidden="true"></i><b id="mineral">80</b><span>Minerals</span></span>
+      <span class="resource membrane" title="Membrane"><i aria-hidden="true"></i><b id="membrane">30</b><span>Membrane</span></span>
+      <span class="resource population" title="Population"><i aria-hidden="true"></i><b id="population">6/12</b><span>Units</span></span>
+    </div>
+    <div class="top-actions">
+      <button type="button" id="speed" title="Change game speed">1×</button>
+      <button type="button" id="pause" title="Pause or resume">Pause</button>
+      <button type="button" id="help-open" title="How to play">Help</button>
+    </div>
+  </header>
+  <main>
+    <section class="playfield" aria-label="Game battlefield">
+      <canvas id="field" tabindex="0" aria-label="Battlefield. Select units with left click or drag. Right click to issue contextual orders. Use the command buttons to issue touch orders."></canvas>
+      <div class="mission">
+        <span id="map-name">Glasswater Basin</span>
+        <h1>Destroy the rival Core</h1>
+        <p id="intel">Your colony is ready.</p>
+      </div>
+      <output class="cursor-note" id="cursor-note" aria-hidden="true" hidden></output>
+      <p class="message" id="message" role="status" aria-live="polite"></p>
+      <button type="button" class="center-button" id="center" title="Center camera on your Core (Space)">⌂ <span>Core</span></button>
+      <section class="end-panel" id="end-panel" aria-labelledby="end-title" hidden>
+        <p>Mission complete</p>
+        <h2 id="end-title"></h2>
+        <p id="end-description"></p>
+        <button type="button" id="play-again">Play again</button>
+      </section>
+    </section>
+    <div class="dock">
+      <section class="unit-panel" aria-label="Selected units and buildings">
+        <span class="panel-label">Selection</span>
+        <h2 id="selection-title">Collectors</h2>
+        <p id="selection-details">Right-click a deposit to start gathering.</p>
+        <div class="unit-icons" id="unit-icons" aria-hidden="true"></div>
+      </section>
+      <section class="command-panel" aria-label="Orders and production">
+        <span class="panel-label">Orders and production</span>
+        <div class="orders" id="orders"></div>
+        <p class="telemetry" id="telemetry"></p>
+      </section>
+      <section class="map-panel" aria-label="Minimap and game settings">
+        <div class="map-head"><span class="panel-label">Minimap</span><span id="clock">0:00</span><button type="button" id="setup-open" title="Choose a map and start a new game">New match</button></div>
+        <canvas id="minimap" tabindex="0" aria-label="Minimap. Click or drag to move the view, or use arrow keys when focused."></canvas>
+        <p class="map-key"><span>◆ Your colony</span><span>◆ Rival colony</span></p>
+      </section>
+    </div>
+  </main>
+  <dialog id="help" aria-labelledby="help-title">
+    <form method="dialog"><button class="close" aria-label="Close help">×</button></form>
+    <h2 id="help-title">How to play</h2>
+    <ol>
+      <li><strong>Gather.</strong> Choose a Collector, then right-click a glowing resource deposit. The cursor identifies the resource. Collectors haul their loads back to a friendly Core or Depot, then return to gather more.</li>
+      <li><strong>Build and train.</strong> Select a Collector to place a Foundry, Depot, Tower or Shelter. Your Core trains Collectors and Scouts. A Foundry trains Guards, Sparks and Wardens. A Shelter increases your unit limit.</li>
+      <li><strong>Scout and attack.</strong> Use the minimap to find the rival colony. Select combat units and right-click opponents, or choose Attack and click the ground to fight while advancing.</li>
+    </ol>
+    <div class="help-grid"><p><kbd>Shift</kbd> adds to your selection</p><p><kbd>G</kbd> Gather · <kbd>A</kbd> Attack · <kbd>M</kbd> Move</p><p><kbd>Esc</kbd> cancels a target order</p><p><kbd>Space</kbd> centers on your Core</p><p><kbd>1</kbd>–<kbd>4</kbd> recall saved groups</p><p><kbd>Ctrl</kbd> + <kbd>1</kbd>–<kbd>4</kbd> save groups</p><p><kbd>←</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>→</kbd> pan the map</p><p><kbd>.</kbd> finds an idle Collector</p><p><kbd>P</kbd> pauses the match</p><p>Mouse wheel zooms · <kbd>Alt</kbd> + drag pans</p><p>On touch, tap an order, then tap a target.</p></div>
+    <p class="science-note">This is a fictional strategy model. The resource counters and battles are game mechanics. For a classroom connection, compare how access to resources and local conditions influence the growth of real populations. In freshwater habitats, bacteria break down organic matter and some protists graze on bacteria. <a href="./classic.html">Open Classic mode</a>.</p>
+  </dialog>
+  <dialog id="setup" aria-labelledby="setup-title">
+    <form method="dialog"><button class="close" aria-label="Close match setup">×</button></form>
+    <h2 id="setup-title">New match</h2>
+    <label for="map-choice">Map</label>
+    <select id="map-choice"><option value="basin">Glasswater Basin</option><option value="reef">Lantern Reef</option><option value="shelf">Mineral Shelf</option></select>
+    <label for="difficulty">Rival pressure</label>
+    <select id="difficulty"><option value="standard">Standard</option><option value="practice">Practice</option><option value="challenge">Challenge</option></select>
+    <label for="mission-mode">Objective</label>
+    <select id="mission-mode"><option value="conquest">Destroy the rival Core</option><option value="survival">Survive for 4 minutes</option><option value="sprint">Gather 600 resources</option></select>
+    <button type="button" id="start-match" class="start">Start match</button>
+  </dialog>
+</body>
+</html>
