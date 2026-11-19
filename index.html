@@ -8,6 +8,7 @@
   <title>Microbial Empires</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="./favicon.svg">
+  <script defer src="./game-save.js"></script>
   <script type="module" src="game.js"></script>
 </head>
 <body>
@@ -23,6 +24,7 @@
       <button type="button" id="speed" title="Change game speed">1×</button>
       <button type="button" id="pause" title="Pause or resume">Pause</button>
       <button type="button" id="help-open" title="How to play">Help</button>
+      <div id="game-tools"></div>
     </div>
   </header>
   <main>
@@ -35,7 +37,11 @@
       </div>
       <output class="cursor-note" id="cursor-note" aria-hidden="true" hidden></output>
       <p class="message" id="message" role="status" aria-live="polite"></p>
-      <button type="button" class="center-button" id="center" title="Center camera on your Core (Space)">⌂ <span>Core</span></button>
+      <div class="view-tools">
+        <button type="button" id="center" title="Center camera on your Core (Space)">⌂ <span>Core</span></button>
+        <button type="button" id="zoom-out" aria-label="Zoom out">−</button>
+        <button type="button" id="zoom-in" aria-label="Zoom in">+</button>
+      </div>
       <section class="end-panel" id="end-panel" aria-labelledby="end-title" hidden>
         <p>Mission complete</p>
         <h2 id="end-title"></h2>
@@ -50,10 +56,15 @@
         <p id="selection-details">Right-click a deposit to start gathering.</p>
         <div class="unit-icons" id="unit-icons" aria-hidden="true"></div>
       </section>
-      <section class="command-panel" aria-label="Orders and production">
-        <span class="panel-label">Orders and production</span>
+      <section class="command-panel" aria-label="Orders">
+        <span class="panel-label">Orders</span>
         <div class="orders" id="orders"></div>
         <p class="telemetry" id="telemetry"></p>
+      </section>
+      <section class="queue-panel" aria-labelledby="queue-title">
+        <h2 class="panel-label" id="queue-title">Production queue</h2>
+        <ol class="production-queue" id="production-queue"></ol>
+        <p class="queue-empty" id="queue-empty">No units queued</p>
       </section>
       <section class="map-panel" aria-label="Minimap and game settings">
         <div class="map-head"><span class="panel-label">Minimap</span><span id="clock">0:00</span><button type="button" id="setup-open" title="Choose a map and start a new game">New match</button></div>
@@ -70,7 +81,7 @@
       <li><strong>Build and train.</strong> Select a Collector to place a Foundry, Depot, Tower or Shelter. Your Core trains Collectors and Scouts. A Foundry trains Guards, Sparks and Wardens. A Shelter increases your unit limit.</li>
       <li><strong>Scout and attack.</strong> Use the minimap to find the rival colony. Select combat units and right-click opponents, or choose Attack and click the ground to fight while advancing.</li>
     </ol>
-    <div class="help-grid"><p><kbd>Shift</kbd> adds to your selection</p><p><kbd>G</kbd> Gather · <kbd>A</kbd> Attack · <kbd>M</kbd> Move</p><p><kbd>Esc</kbd> cancels a target order</p><p><kbd>Space</kbd> centers on your Core</p><p><kbd>1</kbd>–<kbd>4</kbd> recall saved groups</p><p><kbd>Ctrl</kbd> + <kbd>1</kbd>–<kbd>4</kbd> save groups</p><p><kbd>←</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>→</kbd> pan the map</p><p><kbd>.</kbd> finds an idle Collector</p><p><kbd>P</kbd> pauses the match</p><p>Mouse wheel zooms · <kbd>Alt</kbd> + drag pans</p><p>On touch, tap an order, then tap a target.</p></div>
+    <div class="help-grid"><p><kbd>Shift</kbd> adds to your selection</p><p><kbd>G</kbd> Gather · <kbd>A</kbd> Attack · <kbd>M</kbd> Move</p><p><kbd>Esc</kbd> cancels a target order</p><p><kbd>Space</kbd> centers on your Core</p><p><kbd>1</kbd>–<kbd>4</kbd> recall saved groups</p><p><kbd>Ctrl</kbd> + <kbd>1</kbd>–<kbd>4</kbd> save groups</p><p><kbd>←</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>→</kbd> pan the map</p><p><kbd>.</kbd> finds an idle Collector</p><p><kbd>P</kbd> pauses the match</p><p>Mouse wheel zooms · <kbd>Alt</kbd> + drag pans</p><p>On touch, tap an order, then tap a target. With a Collector selected, you can also tap a deposit directly.</p></div>
     <p class="science-note">This is a fictional strategy model. The resource counters and battles are game mechanics. For a classroom connection, compare how access to resources and local conditions influence the growth of real populations. In freshwater habitats, bacteria break down organic matter and some protists graze on bacteria. <a href="./classic.html">Open Classic mode</a>.</p>
   </dialog>
   <dialog id="setup" aria-labelledby="setup-title">

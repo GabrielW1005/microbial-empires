@@ -332,3 +332,86 @@ export class Game {
     if (this.time >= this.nextThink) { this.think(); this.nextThink = this.time + 2; }
   }
 }
+
+const numberBetween = (value, min, max) => Number.isFinite(value) && value >= min && value <= max;
+const wholeBetween = (value, min, max) => Number.isInteger(value) && numberBetween(value, min, max);
+const matchPoint = point => point && numberBetween(point.x, 0, WORLD.width) && numberBetween(point.y, 0, WORLD.height);
+const orderKinds = ['build', 'move', 'gather', 'attack', 'attackMove', 'hold', 'deposit'];
+
+function copyOrder(order) {
+  if (!order || !orderKinds.includes(order.type)) throw new Error('Invalid order');
+  if (order.type === 'hold') return { type: 'hold' };
+  if (!matchPoint(order) || (order.target !== undefined && !wholeBetween(order.target, 1, 10000))) throw new Error('Invalid order target');
+  return { type: order.type, x: order.x, y: order.y, target: order.target };
+}
+
+export function makeSnapshot(game) {
+  return {
+    v: 1,
+    options: game.options,
+    time: game.time,
+    id: game.nextId,
+    bank: game.bank,
+    stats: game.stats,
+    timers: [game.nextThink, game.nextRaid, game.raids],
+    winner: game.winner,
+    units: game.units.map(u => [u.id, u.kind, u.team, u.x, u.y, u.hp, u.angle, u.carry, u.resource, u.returning, u.cooldown, u.orders]),
+    structures: game.structures.map(b => [b.id, b.kind, b.team, b.x, b.y, b.hp, b.progress, b.cooldown, b.queue.map(q => [q.kind, q.left]), b.rally]),
+    deposits: game.deposits.map(d => d.amount),
+  };
+}
+
+export function readSnapshot(data) {
+  const options = data?.options;
+  if (data?.v !== 1 || !options || !Object.hasOwn(MAPS, options.map) || !Object.hasOwn(LEVELS, options.difficulty) || !Object.hasOwn(MODES, options.mode)) throw new Error('Invalid game options');
+  if (!numberBetween(data.time, 0, 86400) || !wholeBetween(data.id, 1, 10000) || ![null, 0, 1].includes(data.winner)) throw new Error('Invalid match clock');
+  if (!Array.isArray(data.bank) || data.bank.length !== 2 || !Array.isArray(data.units) || data.units.length > 144 || !Array.isArray(data.structures) || data.structures.length > 44 || !Array.isArray(data.deposits)) throw new Error('Invalid roster');
+  if (!Array.isArray(data.timers) || data.timers.length !== 3 || !numberBetween(data.timers[0], 0, 86402) || !numberBetween(data.timers[1], 0, 86500) || !wholeBetween(data.timers[2], 0, 10000)) throw new Error('Invalid round timers');
+  const game = new Game(options.map, options.difficulty, options.mode);
+  if (data.deposits.length !== game.deposits.length) throw new Error('Invalid deposits');
+  const ids = new Set(game.deposits.map(d => d.id));
+  const buildCounts = [0, 0];
+  const unitCounts = [0, 0];
+  function validateEntity(values, def, length) {
+    if (!Array.isArray(values) || values.length !== length) throw new Error('Invalid entity');
+    const [id, kind, team, x, y, hp] = values;
+    if (!wholeBetween(id, 1, data.id - 1) || ids.has(id) || !Object.hasOwn(def, kind) || ![0, 1].includes(team) || !matchPoint({ x, y }) || !numberBetween(hp, .001, def[kind].hp)) throw new Error('Invalid entity');
+    ids.add(id);
+  }
+  game.units = data.units.map(entry => {
+    validateEntity(entry, UNITS, 12);
+    const [id, kind, team, x, y, hp, angle, carry, resource, returning, cooldown, orders] = entry;
+    if (++unitCounts[team] > 72 || !numberBetween(angle, -Math.PI, Math.PI) || !numberBetween(carry, 0, 18) || (resource !== null && !Object.hasOwn(GOODS, resource)) || (carry > 0 && resource === null) || typeof returning !== 'boolean' || !numberBetween(cooldown, 0, 2) || !Array.isArray(orders) || orders.length > 9) throw new Error('Invalid unit');
+    return { id, type: 'unit', kind, team, x, y, hp, angle, carry, resource, returning, cooldown, orders: orders.map(copyOrder), moving: false };
+  });
+  game.structures = data.structures.map(entry => {
+    validateEntity(entry, STRUCTURES, 10);
+    const [id, kind, team, x, y, hp, progress, cooldown, queue, rally] = entry;
+    if (++buildCounts[team] > 22 || !numberBetween(progress, 0, 1) || !numberBetween(cooldown, 0, 2) || !Array.isArray(queue) || queue.length > 6 || (rally !== null && !['move', 'gather'].includes(rally?.type))) throw new Error('Invalid structure');
+    const tasks = queue.map(entry => {
+      if (!Array.isArray(entry) || entry.length !== 2 || !TRAIN[kind]?.includes(entry[0]) || !numberBetween(entry[1], 0, UNITS[entry[0]].time)) throw new Error('Invalid production queue');
+      const [unit, left] = entry;
+      return { kind: unit, left, total: UNITS[unit].time };
+    });
+    return { id, type: 'structure', kind, team, x, y, hp, progress, cooldown, queue: tasks, rally: rally === null ? null : copyOrder(rally) };
+  });
+  game.deposits.forEach((deposit, index) => {
+    const amount = data.deposits[index];
+    if (!numberBetween(amount, 0, deposit.total) || deposit.id >= data.id) throw new Error('Invalid deposit');
+    deposit.amount = amount;
+  });
+  game.bank = data.bank.map(stock => Object.fromEntries(Object.keys(GOODS).map(key => {
+    if (!numberBetween(stock?.[key], 0, 1000000)) throw new Error('Invalid stock');
+    return [key, stock[key]];
+  })));
+  for (const key of Object.keys(game.stats)) {
+    if (!numberBetween(data.stats?.[key], 0, 1000000)) throw new Error('Invalid statistics');
+    game.stats[key] = data.stats[key];
+  }
+  if (game.structures.filter(b => b.kind === 'core' && b.team === 0).length > 1 || game.structures.filter(b => b.kind === 'core' && b.team === 1).length > 1 || (data.winner === null && (!game.home(0) || !game.home(1)))) throw new Error('Invalid home structures');
+  game.time = data.time;
+  game.nextId = data.id;
+  game.winner = data.winner;
+  [game.nextThink, game.nextRaid, game.raids] = data.timers;
+  return game;
+}

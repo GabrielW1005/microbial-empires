@@ -1,4 +1,5 @@
-import { Game, WORLD, GOODS, UNITS, STRUCTURES, MODES, clamp, distance, info, makePoint, seeded } from './engine.js';
+import { Game, WORLD, GOODS, UNITS, STRUCTURES, MODES, clamp, distance, info, makePoint, makeSnapshot, readSnapshot } from './engine.js';
+import { sprite, pixelTerrain } from './pixel-art.js';
 
 const $ = id => document.getElementById(id);
 const field = $('field');
@@ -7,7 +8,6 @@ const minimap = $('minimap');
 const mapCtx = minimap.getContext('2d');
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const teams = ['#99edbf', '#ff948f'];
-const tints = ['#265a52', '#6c3f50'];
 const camera = { x: 0, y: 0, width: 0, height: 0, zoom: 1 };
 const heldKeys = new Set();
 const pointers = new Map();
@@ -30,6 +30,9 @@ let shownResult = false;
 let commandPointer = null;
 let lastDoubleClick = null;
 let panelQueue = 0;
+let queueRows = [];
+let queueSignature = '';
+let progressTools;
 
 const show = (message, duration = 4) => { $('message').textContent = message; statusTimer = duration; };
 const resetTransform = (g, canvas, width, height) => g.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0);
@@ -57,75 +60,16 @@ function resize() {
   field.height = Math.max(1, Math.round(dimensions.height * pixelRatio));
   camera.width = dimensions.width;
   camera.height = dimensions.height;
+  camera.zoom = Math.max(camera.zoom, camera.width / WORLD.width, camera.height / WORLD.height);
   const mini = minimap.getBoundingClientRect();
   minimap.width = Math.max(1, Math.round(mini.width * pixelRatio));
   minimap.height = Math.max(1, Math.round(mini.height * pixelRatio));
   constrainCamera();
 }
 
-function makeTerrain(map) {
-  const background = document.createElement('canvas');
-  background.width = WORLD.width;
-  background.height = WORLD.height;
-  const g = background.getContext('2d');
-  const rand = seeded(map.seed);
-  const [base, mid, light] = map.palette;
-  const water = g.createLinearGradient(0, 0, WORLD.width, WORLD.height);
-  water.addColorStop(0, mid);
-  water.addColorStop(0.41, base);
-  water.addColorStop(0.74, mid);
-  water.addColorStop(1, base);
-  g.fillStyle = water;
-  g.fillRect(0, 0, WORLD.width, WORLD.height);
-  for (let i = 0; i < 50; i++) {
-    const x = rand() * WORLD.width;
-    const y = rand() * WORLD.height;
-    const dx = 75 + rand() * 240;
-    const halo = g.createRadialGradient(x, y, 0, x, y, dx);
-    halo.addColorStop(0, `${light}63`);
-    halo.addColorStop(1, `${light}00`);
-    g.fillStyle = halo;
-    g.fillRect(x - dx, y - dx, dx * 2, dx * 2);
-  }
-  for (let i = 0; i < 2500; i++) {
-    const x = rand() * WORLD.width;
-    const y = rand() * WORLD.height;
-    const a = 1 + rand() * 3;
-    g.globalAlpha = 0.15 + rand() * 0.28;
-    g.fillStyle = i % 8 ? light : '#b1ce9d';
-    g.beginPath();
-    g.ellipse(x, y, a, a / 2, rand() * 6, 0, Math.PI * 2);
-    g.fill();
-  }
-  g.globalAlpha = 1;
-  for (let i = 0; i < 120; i++) {
-    const x = rand() * WORLD.width;
-    const y = rand() * WORLD.height;
-    const r = 19 + rand() * 92;
-    g.save();
-    g.translate(x, y);
-    g.rotate(rand() * 6);
-    g.strokeStyle = `${light}50`;
-    g.fillStyle = `${base}80`;
-    g.beginPath();
-    g.ellipse(0, 0, r, r * 0.49, 0, 0, Math.PI * 2);
-    g.fill();
-    g.stroke();
-    g.strokeStyle = `${light}44`;
-    g.beginPath();
-    g.ellipse(0, 0, r * 0.65, r * 0.35, 0, 0, Math.PI * 2);
-    g.stroke();
-    g.restore();
-  }
-  g.strokeStyle = `${light}3a`;
-  g.lineWidth = 3;
-  g.strokeRect(3, 3, WORLD.width - 6, WORLD.height - 6);
-  return background;
-}
-
 function start(map = 'basin', difficulty = 'standard', mode = 'conquest') {
   game = new Game(map, difficulty, mode);
-  terrain = makeTerrain(game.map);
+  terrain = pixelTerrain(game.map);
   selection = game.units.filter(u => u.team === 0 && u.kind === 'collector').map(u => u.id);
   groups = {};
   command = null;
@@ -147,6 +91,7 @@ function start(map = 'basin', difficulty = 'standard', mode = 'conquest') {
   needsPanel = true;
   updateInterface();
   drawMini();
+  progressTools?.saveNow();
 }
 
 function lens(event) {
@@ -341,6 +286,41 @@ function updatePanel() {
   $('orders').setAttribute('title', defaultHint);
 }
 
+function updateQueue() {
+  const queue = game.structures.filter(b => b.team === 0 && b.queue.length);
+  const items = queue.flatMap(b => b.queue.map((task, index) => ({ task, building: b, active: index === 0 })));
+  const signature = items.map(({ task, building }) => `${building.id}:${task.kind}`).join('|');
+  if (signature !== queueSignature) {
+    queueSignature = signature;
+    const list = $('production-queue');
+    list.replaceChildren();
+    $('queue-empty').hidden = !!items.length;
+    queueRows = items.map(({ task, building, active }) => {
+      const name = UNITS[task.kind].name;
+      const row = document.createElement('li');
+      row.title = `${name} · ${info(building).name}`;
+      const text = document.createElement('strong');
+      text.textContent = `${UNITS[task.kind].icon} ${name}`;
+      const status = document.createElement('span');
+      row.append(text, status);
+      let meter;
+      if (active) {
+        meter = document.createElement('progress');
+        meter.max = task.total;
+        meter.setAttribute('aria-label', `${name} training progress at ${info(building).name}`);
+        row.append(meter);
+      }
+      list.append(row);
+      return { status, meter };
+    });
+  }
+  items.forEach(({ task }, index) => {
+    const { status, meter } = queueRows[index];
+    status.textContent = meter ? `${Math.ceil(task.left)}s` : 'Waiting';
+    if (meter) meter.value = task.total - task.left;
+  });
+}
+
 function updateInterface() {
   for (const key of Object.keys(GOODS)) $(key).textContent = Math.floor(game.bank[0][key]);
   $('population').textContent = `${game.population(0)}/${game.capacity(0)}`;
@@ -357,6 +337,7 @@ function updateInterface() {
   $('telemetry').textContent = first ? `Training ${UNITS[first.kind].name} · ${Math.ceil(first.left)}s · ${building.queue.length} queued` : `Deposited ${Math.floor(game.stats.gathered)} · Trained ${game.stats.trained} · Idle Collectors ${idle}`;
   if (selection.some(id => !game.entity(id))) { selection = selection.filter(id => game.entity(id)); needsPanel = true; }
   if (needsPanel) { updatePanel(); needsPanel = false; }
+  updateQueue();
 }
 
 function polygon(g, sides, radius, rotation = -Math.PI / 2) {
@@ -423,48 +404,25 @@ function drawStructure(structure, ghost = false) {
   const color = teams[structure.team];
   const r = def.size;
   ctx.save();
-  ctx.translate(structure.x, structure.y);
+  ctx.translate(Math.round(structure.x), Math.round(structure.y));
   if (structure.progress < 1) ctx.setLineDash([5, 5]);
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = color;
-  ctx.fillStyle = tints[structure.team];
-  if (structure.kind === 'core') {
-    ring(ctx, 0, 0, r + 10, `${color}62`);
-    for (let i = 0; i < 8; i++) {
-      const angle = i * Math.PI / 4;
-      ctx.beginPath();
-      ctx.arc(Math.cos(angle) * r * 0.74, Math.sin(angle) * r * 0.74, 12, 0, 2 * Math.PI);
-      ctx.fill();
-      ctx.stroke();
-    }
-    polygon(ctx, 8, r * 0.76, Math.PI / 8);
-  } else {
-    polygon(ctx, structure.kind === 'tower' ? 3 : structure.kind === 'shelter' ? 5 : 6, r);
-  }
-  ctx.fill();
-  ctx.stroke();
+  ctx.strokeStyle = `${color}86`;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(-r, -r * .69, r * 2, r * 1.38);
   ctx.setLineDash([]);
-  if (structure.kind === 'core') {
-    const shine = ctx.createRadialGradient(-7, -14, 1, 0, 0, r * 0.7);
-    shine.addColorStop(0, color);
-    shine.addColorStop(0.58, tints[structure.team]);
-    shine.addColorStop(1, '#101f28');
-    ctx.beginPath();
-    ctx.arc(0, 0, r * 0.53, 0, Math.PI * 2);
-    ctx.fillStyle = shine;
-    ctx.fill();
-    ring(ctx, 0, 0, r * 0.56, `${color}94`, 2);
-  }
-  ctx.fillStyle = color;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = `700 ${Math.round(r * 0.82)}px system-ui, sans-serif`;
-  ctx.fillText(def.icon, 0, 2);
+  sprite(ctx, structure.kind, structure.team, 0, 0, 2.06 * r);
   if (!ghost) {
-    ctx.font = '700 11px system-ui, sans-serif';
-    ctx.fillText(`${structure.team ? 'Rival ' : ''}${def.name}`, 0, r + 23);
-    if (structure.progress < 1) bar(-27, r + 33, 54, structure.progress, '#f2c674');
-    if (structure.hp < def.hp) bar(-27, -r - 16, 54, structure.hp / def.hp, color);
+    ctx.font = '700 11px ui-monospace, monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = color;
+    ctx.shadowColor = '#101923';
+    ctx.shadowBlur = 1;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+    ctx.fillText(`${structure.team ? 'Rival ' : ''}${def.name}`, 0, r + 7);
+    if (structure.progress < 1) bar(-27, r + 18, 54, structure.progress, '#f2c674');
+    if (structure.hp < def.hp) bar(-27, -r - 6, 54, structure.hp / def.hp, color);
   }
   ctx.restore();
 }
@@ -480,72 +438,30 @@ function drawUnit(unit) {
   const def = info(unit);
   const color = teams[unit.team];
   const size = def.size;
-  ctx.save();
-  ctx.translate(unit.x, unit.y);
-  ctx.rotate(unit.angle);
+  const x = Math.round(unit.x);
+  const y = Math.round(unit.y);
+  const mirrored = Math.cos(unit.angle) < 0;
   if (!reduceMotion.matches && unit.moving) {
-    ctx.setLineDash([3, 4]);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = `${color}85`;
-    ctx.beginPath();
-    ctx.moveTo(-size - 3, 0);
-    ctx.lineTo(-size - 20, 0);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    ctx.fillStyle = `${color}72`;
+    for (let i = 0; i < 3; i++) {
+      const stride = 11 + i * 5;
+      ctx.fillRect(Math.round(x - Math.cos(unit.angle) * stride), Math.round(y - Math.sin(unit.angle) * stride), 2, 2);
+    }
   }
-  const fill = ctx.createLinearGradient(0, -size, 0, size);
-  fill.addColorStop(0, color);
-  fill.addColorStop(0.38, tints[unit.team]);
-  fill.addColorStop(1, '#132733');
-  ctx.fillStyle = fill;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1.6;
-  if (unit.kind === 'collector') {
-    ctx.beginPath();
-    ctx.roundRect(-size, -size * 0.59, size * 2, size * 1.18, 8);
-  } else if (unit.kind === 'scout') {
-    ctx.beginPath();
-    ctx.moveTo(size * 1.3, 0);
-    ctx.lineTo(-size, size * 0.69);
-    ctx.lineTo(-size * 0.56, 0);
-    ctx.lineTo(-size, -size * 0.69);
-    ctx.closePath();
-  } else if (unit.kind === 'guard') {
-    polygon(ctx, 4, size, 0);
-  } else if (unit.kind === 'spark') {
-    ctx.beginPath();
-    ctx.ellipse(0, 0, size * 1.13, size * 0.81, 0, 0, Math.PI * 2);
-  } else {
-    polygon(ctx, 6, size, 0);
-  }
-  ctx.fill();
-  ctx.stroke();
-  if (unit.kind === 'spark') {
-    ctx.strokeStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(-size * 0.75, 0);
-    ctx.lineTo(-size * 0.2, -size * 0.3);
-    ctx.lineTo(size * 0.24, size * 0.19);
-    ctx.lineTo(size * 0.82, -size * 0.19);
-    ctx.stroke();
-  } else {
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.ellipse(size * 0.16, 0, size * 0.25, size * 0.18, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  if (unit.carry > 0.1 && unit.resource) {
+  sprite(ctx, unit.kind, unit.team, x, y, 2.05 * size, mirrored);
+  if (unit.carry > .1 && unit.resource) {
+    ctx.fillStyle = '#1b2834';
+    ctx.fillRect(x - 5, y + 3, 10, 9);
     ctx.fillStyle = GOODS[unit.resource].color;
-    polygon(ctx, 4, 5, 0);
-    ctx.fill();
+    ctx.fillRect(x - 3, y + 5, 6, 5);
   }
-  ctx.restore();
-  if (unit.hp < def.hp) bar(unit.x - 14, unit.y - size - 10, 28, unit.hp / def.hp, color);
+  if (unit.hp < def.hp) bar(x - 14, y - size - 7, 28, unit.hp / def.hp, color);
 }
 
 function drawField() {
   if (!camera.width || !camera.height) return;
   resetTransform(ctx, field, camera.width, camera.height);
+  ctx.imageSmoothingEnabled = false;
   ctx.fillStyle = game.map.palette[0];
   ctx.fillRect(0, 0, camera.width, camera.height);
   ctx.save();
@@ -554,7 +470,7 @@ function drawField() {
   const right = camera.x + camera.width / camera.zoom;
   const bottom = camera.y + camera.height / camera.zoom;
   const visible = e => e.x > camera.x - 140 && e.x < right + 140 && e.y > camera.y - 135 && e.y < bottom + 135;
-  ctx.drawImage(terrain, camera.x, camera.y, right - camera.x, bottom - camera.y, camera.x, camera.y, right - camera.x, bottom - camera.y);
+  ctx.drawImage(terrain, camera.x / 4, camera.y / 4, (right - camera.x) / 4, (bottom - camera.y) / 4, camera.x, camera.y, right - camera.x, bottom - camera.y);
   for (const deposit of game.deposits) if (visible(deposit)) drawDeposit(deposit);
   for (const building of game.structures) if (visible(building)) drawStructure(building);
   for (const unit of game.units) if (visible(unit)) drawUnit(unit);
@@ -620,6 +536,7 @@ function drawMini() {
   const height = minimap.height;
   const sx = width / WORLD.width;
   const sy = height / WORLD.height;
+  mapCtx.imageSmoothingEnabled = false;
   mapCtx.drawImage(terrain, 0, 0, width, height);
   for (const deposit of game.deposits) {
     if (!deposit.amount) continue;
@@ -659,7 +576,7 @@ field.addEventListener('pointerdown', event => {
   if (event.button !== 0 && event.button !== 1) return;
   if (game.winner !== null) return;
   const point = lens(event);
-  const pan = event.button === 1 || event.altKey || (event.pointerType === 'touch' && !command);
+  const pan = event.button === 1 || event.altKey || (['touch', 'pen'].includes(event.pointerType) && !command);
   pointers.set(event.pointerId, { origin: point, end: point, pan, distance: 0, initialX: camera.x, initialY: camera.y });
   field.setPointerCapture(event.pointerId);
   field.focus({ preventScroll: true });
@@ -692,6 +609,11 @@ field.addEventListener('pointerup', event => {
   else if (active.distance > 6) selectBox(active, event.shiftKey);
   else {
     const target = targetAt(point.world);
+    const isTouch = event.pointerType === 'touch' || event.pointerType === 'pen';
+    if (isTouch && ((target?.type === 'deposit' && workers().length) || (target?.team === 1 && fighters().length))) {
+      issueOrder(point.world);
+      return;
+    }
     const now = performance.now();
     const doubleClick = target?.id === lastDoubleClick?.id && lastDoubleClick && now - lastDoubleClick.time < 330;
     lastDoubleClick = { id: target?.id, time: now };
@@ -722,13 +644,15 @@ function changePause() {
 }
 $('pause').addEventListener('click', changePause);
 $('center').addEventListener('click', centerHome);
+$('zoom-out').addEventListener('click', () => zoomAt(camera.zoom / 1.22, camera.width / 2, camera.height / 2));
+$('zoom-in').addEventListener('click', () => zoomAt(camera.zoom * 1.22, camera.width / 2, camera.height / 2));
 $('speed').addEventListener('click', () => { speed = { 1: 1.5, 1.5: 2, 2: 1 }[speed]; $('speed').textContent = `${speed}×`; });
 $('help-open').addEventListener('click', () => openDialog('help'));
 $('setup-open').addEventListener('click', () => openDialog('setup'));
 $('play-again').addEventListener('click', () => openDialog('setup'));
 $('start-match').addEventListener('click', () => { $('setup').close(); start($('map-choice').value, $('difficulty').value, $('mission-mode').value); });
 window.addEventListener('keydown', event => {
-  if (document.querySelector('dialog[open]') || ['BUTTON', 'SELECT', 'A'].includes(event.target.tagName)) return;
+  if (progressTools?.isOpen() || document.querySelector('dialog[open]') || ['BUTTON', 'SELECT', 'INPUT', 'TEXTAREA', 'A'].includes(event.target.tagName)) return;
   if (event.key.startsWith('Arrow')) { event.preventDefault(); heldKeys.add(event.key); return; }
   if (event.repeat) return;
   const key = event.key.toLowerCase();
@@ -754,6 +678,7 @@ function finish() {
   $('end-title').textContent = game.winner === 0 ? 'Colony victorious' : 'Rival colony wins';
   $('end-description').textContent = `${Math.floor(game.stats.gathered)} resources gathered · ${game.stats.trained} units trained · ${game.stats.defeated} rivals defeated`;
   $('end-panel').hidden = false;
+  progressTools?.saveNow();
 }
 
 function animate(now) {
@@ -765,7 +690,7 @@ function animate(now) {
     constrainCamera();
     updateCursor();
   }
-  if (!paused && !document.querySelector('dialog[open]')) {
+  if (!paused && !progressTools?.isOpen() && !document.querySelector('dialog[open]')) {
     for (let remaining = dt * speed; remaining > 0;) {
       const step = Math.min(remaining, 0.05);
       game.step(step);
@@ -782,9 +707,64 @@ function animate(now) {
   requestAnimationFrame(animate);
 }
 
+function snapshot() {
+  return { version: 1, match: makeSnapshot(game), viewport: { x: camera.x, y: camera.y, zoom: camera.zoom }, selection, groups, speed, paused };
+}
+
+function restore(data) {
+  if (data?.version !== 1 || !data.viewport || !['x', 'y', 'zoom'].every(key => Number.isFinite(data.viewport[key])) || ![1, 1.5, 2].includes(data.speed) || typeof data.paused !== 'boolean') return false;
+  if (!Array.isArray(data.selection) || data.selection.length > 72 || !data.groups || typeof data.groups !== 'object') return false;
+  let match;
+  try { match = readSnapshot(data.match); }
+  catch { return false; }
+  const uniqueFriendly = ids => [...new Set(ids.filter(id => Number.isInteger(id) && match.entity(id)?.team === 0))];
+  const newGroups = {};
+  for (const key of ['1', '2', '3', '4']) {
+    const group = data.groups[key];
+    if (group === undefined) continue;
+    if (!Array.isArray(group) || group.length > 72) return false;
+    newGroups[key] = uniqueFriendly(group);
+  }
+  const restoredTerrain = pixelTerrain(match.map);
+  game = match;
+  terrain = restoredTerrain;
+  selection = uniqueFriendly(data.selection);
+  groups = newGroups;
+  command = null;
+  marker = null;
+  paused = data.paused;
+  speed = data.speed;
+  reportedNews = game.newsTime;
+  shownResult = false;
+  camera.zoom = clamp(data.viewport.zoom, Math.max(.55, camera.width / WORLD.width, camera.height / WORLD.height), 2.15);
+  camera.x = data.viewport.x;
+  camera.y = data.viewport.y;
+  constrainCamera();
+  $('end-panel').hidden = true;
+  $('map-name').textContent = game.map.name;
+  document.querySelector('.mission h1').textContent = MODES[game.options.mode];
+  $('speed').textContent = `${speed}×`;
+  $('pause').textContent = paused ? 'Resume' : 'Pause';
+  $('map-choice').value = game.options.map;
+  $('difficulty').value = game.options.difficulty;
+  $('mission-mode').value = game.options.mode;
+  queueSignature = '';
+  queueRows = [];
+  $('production-queue').replaceChildren();
+  $('queue-empty').hidden = false;
+  needsPanel = true;
+  updateInterface();
+  drawMini();
+  show('Match progress restored.');
+  return true;
+}
+
 resize();
 start();
-drawMini();
+progressTools = window.GameSave?.attach({
+  game: 'microbial-empires', title: 'Microbial Empires', mount: $('game-tools'), snapshot, restore,
+  onOpenChange: () => { heldKeys.clear(); },
+});
 new ResizeObserver(resize).observe(field);
 new ResizeObserver(resize).observe(minimap);
 requestAnimationFrame(animate);

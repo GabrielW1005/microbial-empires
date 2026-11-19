@@ -1,5 +1,10 @@
 import {readFile,writeFile} from 'node:fs/promises';
 let html=await readFile('dist/index.html','utf8');
+const standaloneSave = /<script defer src="\.\/game-save\.js"><\/script>/;
+if (standaloneSave.test(html)) {
+  const save = (await readFile('dist/game-save.js', 'utf8')).replace(/<\/script/gi, '<\\/script');
+  html = html.replace(standaloneSave, () => `<script>${save}</script>`);
+}
 const js=html.match(/<script type="module" crossorigin src="([^\"]+)"><\/script>/);
 const css=html.match(/<link rel="stylesheet" crossorigin href="([^\"]+)">/);
 if(!js||!css)throw new Error('Expected one Vite entry script and stylesheet.');
